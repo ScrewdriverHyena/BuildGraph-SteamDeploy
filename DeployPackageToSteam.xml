@@ -1,0 +1,48 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+    <Property Name="AllDesktopPlatforms" Value="Mac+Windows+Linux" />
+
+    <Option Name="SteamAppID" DefaultValue="" Description="Steam AppID"/>
+    <Option Name="AgentType" DefaultValue="IncrementalWin64" Description="Agent Type"/>
+    <Option Name="PackageNetworkPath" DefaultValue="" Description="Network path where packages are sent. Should have Steam's installscript.vdf at its root. Can be a non-network path if needed as well."/>
+
+    <Property Name="TargetPlatforms" Value=""/>
+
+    <Option Name="WithWin64" DefaultValue="false" Description="Publish Windows (x64) build to Steam"/>
+    <Property Name="TargetPlatforms" Value="$(TargetPlatforms)+Windows" If="$(WithWin64) and !ContainsItem('$(TargetPlatforms)', 'Windows', '+')"/>
+
+    <Option Name="WithLinux" DefaultValue="false" Description="Publish Linux (x64) build to Steam"/>
+    <Property Name="TargetPlatforms" Value="$(TargetPlatforms)+Linux" If="$(WithLinux) and !ContainsItem('$(TargetPlatforms)', 'Linux', '+')"/>
+
+    <Option Name="WithMac" DefaultValue="false" Description="Publish Mac (x64, ARM) build to Steam"/>
+    <Property Name="TargetPlatforms" Value="$(TargetPlatforms)+Mac" If="$(WithMac) and !ContainsItem('$(TargetPlatforms)', 'Mac', '+')"/>
+
+    <Property Name="PublishNodes" Value=""/>
+
+    <ForEach Name="TargetPlatform" Values="$(TargetPlatforms)" Separator="+">
+        <Error Message="Steam only supports Windows, Mac, and Linux platforms." If="!ContainsItem('$(AllDesktopPlatforms)','$(TargetPlatform)','+')" />
+
+        <Property Name="PublishNodes" Value="$(PublishNodes);Prepare $(TargetPlatform)" If="'$(PublishNodes)' != '' and '$(TargetPlatform)' != ''"/>
+        <Property Name="PublishNodes" Value="Prepare $(TargetPlatform)" If="'$(PublishNodes)' == '' and '$(TargetPlatform)' != ''"/>
+    </ForEach>
+
+    <Agent Name="Prepare Install Scripts" Type="$(AgentType)">
+        <ForEach Name="TargetPlatform" Values="$(TargetPlatforms)" Separator="+">
+            <Node Name="Prepare $(TargetPlatform)">
+                <Copy Files="installscript.vdf" From="$(PackageNetworkPath)" To="$(PackageNetworkPath)/$(TargetPlatform)/Packages" />
+            </Node>
+        </ForEach>
+    </Agent>
+
+    <Agent Name="Publish" Type="$(AgentType)">
+        <Node Name="Publish" Requires="$(PublishNodes)">
+            <!-- We assume you've already signed in on the build account at least once to generate the login token. Also, Steamworks tools need to be in the depot. -->
+            <Spawn Exe="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/builder/steamcmd.exe" Arguments="+login $(STEAMWORKS_BUILD_NAME) +run_app_build $(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/scripts/app_$(SteamAppID).vdf +quit" WorkingDir="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/"/>
+        </Node>
+    </Agent>
+
+    <Label Name="Steam" Category="Storefronts" Requires="Publish"/>
+    <Label Name="Win64" Category="Platforms" Requires="Publish" If="$(WithWin64)"/>
+    <Label Name="Linux" Category="Platforms" Requires="Publish" If="$(WithLinux)"/>
+    <Label Name="Mac" Category="Platforms" Requires="Publish" If="$(WithMac)"/>
+</BuildGraph>
