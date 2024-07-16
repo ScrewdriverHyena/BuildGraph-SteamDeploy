@@ -2,6 +2,8 @@
 ## Description
 A very basic buildgraph script for deploying Unreal Engine games to Steam via Horde.
 
+If there are any features you'd like to see added, feel free to open an issue or send in a PR.
+
 ## Usage
 To use this script with Horde, you must:
 * Put your Steamworks install in your engine depot. This includes the upload token.
