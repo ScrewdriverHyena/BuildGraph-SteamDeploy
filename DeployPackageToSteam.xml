@@ -38,7 +38,7 @@
         <ForEach Name="TargetPlatform" Values="$(TargetPlatforms)" Separator="+">
             <Node Name="Publish $(TargetPlatform)" Requires="$(PublishNodes)">
                 <!-- We assume you've already signed in on the build account at least once to generate the login token. Also, Steamworks tools need to be in the depot. -->
-                <Spawn Exe="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/builder/steamcmd.exe" Arguments="+login $(STEAMWORKS_BUILD_NAME) +run_app_build $(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/scripts/app_$(SteamAppID)_$(TargetPlatform).vdf +quit" WorkingDir="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/ -skipinitialbootstrap"/>
+                <Spawn Exe="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/builder/steamcmd.exe" Arguments="-skipinitialbootstrap +login $(STEAMWORKS_BUILD_NAME) +run_app_build $(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/scripts/app_$(SteamAppID)_$(TargetPlatform).vdf +quit" WorkingDir="$(RootDir)/Engine/Binaries/ThirdParty/Steamworks/tools/ContentBuilder/"/>
             </Node>
         </ForEach>
     </Agent>
